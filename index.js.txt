@@ -1,0 +1,99 @@
+const AWS = require("aws-sdk");
+
+AWS.config.update({
+  region: "us-east-2" 
+});
+
+const DynamoDB = new AWS.DynamoDB();
+function createTable() {
+  const params = {
+    TableName: "Work",
+    KeySchema: [{ AttributeName: "title", KeyType: "HASH" }],
+    AttributeDefinitions: [{ AttributeName: "title", AttributeType: "S" }],
+    ProvisionedThroughput: {
+      ReadCapacityUnits: 10,
+      WriteCapacityUnits: 10
+    }
+  };
+
+  DynamoDB.createTable(params, function(err, data) {
+    if (err) {
+      console.error("Unable to create table", err);
+    } else {
+      console.log("Created table", data);
+    }
+  });
+}
+
+module.exports = {
+  createTable
+};
+function addWork(title, salary) {
+  const params = {
+    TableName: "Work",
+    Item: {
+      title: { S: title },
+      salary: { N: salary }
+    }
+  };
+
+  DynamoDB.putItem(params, function(err) {
+    if (err) {
+      console.error("Unable to add Work", err);
+    } else {
+      console.log(`Added ${title} with a amount of ${salary}%`);
+    }
+  });
+}
+function getWork(title) {
+  const params = {
+    TableName: "Work",
+    Key: {
+      title: { S: title }
+    }
+  };
+
+  DynamoDB.getItem(params, function(err, data) {
+    if (err) {
+      console.error("Unable to find work", err);
+    } else {
+      console.log("Found work", data.Item);
+    }
+  });
+}
+function updateWork(title, newsalary) {
+  const params = {
+    TableName: "Work",
+    Item: {
+      title: { S: title },
+      salary: { N: newsalary.toString() }
+    },
+    ReturnConsumedCapacity: "TOTAL"
+  };
+
+  DynamoDB.putItem(params, function(err) {
+    if (err) {
+      console.error("Unable to find work", err);
+    } else {
+      console.log(`Updated ${title} with new salary of ${newsalary}%`);
+    }
+  });
+}
+function deleteWork(title) {
+	const params = {
+		TableName: "Work",
+		Key: {
+			title: { S: title }
+		}
+	};
+
+	DynamoDB.deleteItem(params, function(err) {
+		if (err) {
+			console.error("Unable to find Work", err);
+		} else {
+			console.log(`Deleted ${title}`);
+		}
+	});
+}
+
+
